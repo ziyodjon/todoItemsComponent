@@ -2,15 +2,18 @@
 import { createElement } from "../createElement.js";
 import { Items } from "./Items.js";
 
-export function ItemsWrap(){
-    const itemsEl = Items();
+export function ItemsWrap(handlerDeleteItem){
+    const itemsObj = Items(handlerDeleteItem);
 
     const itemsWrapEl = createElement({
         tagName: 'div',
         className: ['itemsWrap']
     });
 
-    itemsWrapEl.append(itemsEl);
+    itemsWrapEl.append(itemsObj.itemsEl);
 
-    return itemsWrapEl;
+    return {
+        itemsWrapEl,
+        renderList:itemsObj.renderList
+    };
 }

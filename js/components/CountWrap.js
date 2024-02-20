@@ -6,8 +6,11 @@ export function CountWrap(){
         tagName:'div',
         className:['itemsCountWrap']
     });
-    const countEl = Count();
+    const countObj = Count();
 
-    countWrapEl.append(countEl);
-    return countWrapEl;
+    countWrapEl.append(countObj.countEl);
+    return {
+        countWrapEl,
+        setCount:countObj.setCount
+    };
 }

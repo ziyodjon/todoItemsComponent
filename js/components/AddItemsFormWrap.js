@@ -2,8 +2,8 @@
 import { createElement } from "../createElement.js";
 import { Form } from "./Form.js";
 
-export function AddItemsFormWrap(){
-    const itemForm = Form();
+export function AddItemsFormWrap(handlerAddItem){
+    const itemForm = Form(handlerAddItem);
     
     const AddItemsFormWrapEl = createElement({
         tagName: 'div',

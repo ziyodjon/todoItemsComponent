@@ -7,5 +7,12 @@ export function Count(){
         text:'0 items left'
     });
 
-    return countEl;
+    function setCount(count){
+        countEl.textContent = `${count} items left`;
+    }
+
+    return {
+        countEl,
+        setCount
+    };
 }

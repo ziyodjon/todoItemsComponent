@@ -1,11 +1,13 @@
 import { createElement } from "../createElement.js";
 
-export function ClearCompletedBtn(){
+export function ClearCompletedBtn(text,handlerClick){
     const clearCompletedBtnEl = createElement({
         tagName:'button',
         className:['itemsCleartBtn'],
-        text:'Clear completed'
+        text:text
     });
+
+    clearCompletedBtnEl.addEventListener('click',handlerClick);
 
     return clearCompletedBtnEl;
 }
