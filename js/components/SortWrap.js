@@ -1,17 +1,21 @@
 import { createElement } from "../createElement.js";
-import { SortAllBtn } from "./SortAllBtn.js";
-import { SortActiveBtn } from "./SortActiveBtn.js";
-import { SortCompletedBtn } from "./SortCompletedBtn.js";
+import { SortBtn } from "./SortBtn.js";
 
-export function SortWrap(){
+export function SortWrap(handlerSort){
     const sortWrapEl = createElement({
         tagName:'div',
         className:['itemsSortWrap']
     });
 
-    const SortAllBtnEl = SortAllBtn();
-    const SortActiveBtnEl = SortActiveBtn()
-    const SortCompletedBtnEl = SortCompletedBtn();
+    const SortAllBtnEl = SortBtn('All',() => {
+        handlerSort('all'); 
+    });
+    const SortActiveBtnEl = SortBtn('Active',() => {
+        handlerSort('active'); 
+    });
+    const SortCompletedBtnEl = SortBtn('Completed',() => {
+        handlerSort('completed'); 
+    });
 
     sortWrapEl.append(SortAllBtnEl,SortActiveBtnEl,SortCompletedBtnEl);
     return sortWrapEl;
