@@ -55,6 +55,8 @@ const handlerDeleteItem = function (Obj) {
         }
     });
 
+    saveToLocalStorage(data);
+
     render();
 
 };
