@@ -18,6 +18,7 @@ const handlerClear = function (){
     console.log(data);
     filterType = 'all';
     data.forEach(item => item.status = false);
+    saveToLocalStorage(data);
     render();
 }
 
