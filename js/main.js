@@ -69,6 +69,7 @@ const handlerChangeStatusItem = function (Obj,item){
         
         return item;
     });
+    render()
     saveToLocalStorage(data);
 };
 
