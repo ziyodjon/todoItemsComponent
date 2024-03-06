@@ -8,17 +8,19 @@ import { AddItemsFormWrap } from "./components/AddItemsFormWrap.js";
 import { ItemsWrap } from "./components/ItemsWrap.js";
 import { Footer } from "./components/Footer.js";
 
-let count = 0;
+
+// Для получение данных сделать из двух один
 let data = JSON.parse(localStorage.getItem('todoItems')) || [];
+let dataArchive = JSON.parse(localStorage.getItem('todoArchives')) || [];
 
 let filterType = 'all';
 
 const handlerClear = function (){
-    //footerObj.setCount(++count);
-    console.log(data);
     filterType = 'all';
+
     data.forEach(item => item.status = false);
-    saveToLocalStorage(data);
+
+    saveToLocalStorage(data, 'todoItems');
     render();
 }
 
@@ -33,37 +35,40 @@ const handlerSort = function(sortTypes){
 }
 
 const handlerAddItem = function(inputEl){
-    //alert(inputEl.value);
     data.push({
         id:Date.now(),
         name:inputEl.value,
         status: false,
     });
-    saveToLocalStorage(data);
-    //footerObj.setCount(++count)
+
+    saveToLocalStorage(data, 'todoItems');
     render();
     inputEl.value = '';
 }
 
 const handlerDeleteItem = function (Obj) {
-    
-    const currentToDoItemId = Obj.id;
-    
-    data.forEach((item,index) => {
-        if(item.id === Number(currentToDoItemId)){
-            data.splice(index,1);
-        }
-    });
 
-    saveToLocalStorage(data);
+    dataArchive.push(Obj);
 
+    data = data.filter((item) => item.id !== Number(Obj.id));
+
+    saveToLocalStorage(dataArchive, 'todoArchives');
+    saveToLocalStorage(data, 'todoItems');
+
+    renderArchive();
     render();
 
 };
 
+const handlerDeleteArchiveItem = function (Obj){
+    //  Удаления через filter
+    dataArchive = dataArchive.filter((item)=> item.id !== Number(Obj.id));
+
+    saveToLocalStorage(dataArchive, 'todoArchives');
+    renderArchive();
+}
+
 const handlerChangeStatusItem = function (Obj,item){
-    //console.log(Obj, item)
-    //Obj.status = !Obj.status;
     item.classList.toggle("checked");
     data = data.map(item => {
         if(Obj.id == item.id){
@@ -73,16 +78,27 @@ const handlerChangeStatusItem = function (Obj,item){
         return item;
     });
     render()
-    saveToLocalStorage(data);
+    saveToLocalStorage(data, 'todoItems');
 };
 
-// const changeStatus = function (event){
-//     event.target.parentElement.classList.toggle("checked");
-// }
+const hanlerAddToListItem = function(Obj){
+    data.push(Obj);
+    dataArchive.forEach((item,index) => {
+        if(item.id === Number(Obj.id)){
+            dataArchive.splice(index,1);
+        }
+    });
+
+    saveToLocalStorage(dataArchive, 'todoArchives');
+    saveToLocalStorage(data, 'todoItems');
+    renderArchive();
+    render();
+}
+
 
 const render = function(){
     let filterArr = [...data];
-    console.log(filterType);
+
     if(filterType === 'active'){
         filterArr = filterArr.filter(el => el.status === false);
     }
@@ -91,10 +107,12 @@ const render = function(){
         filterArr = filterArr.filter(el => el.status === true);
     }
 
-    //console.log(filterArr);
     itemsObj.renderList(filterArr);
-    //handlerSetCountItem();
     footerObj.setCount(setCountItem());
+}
+
+const renderArchive = function(){
+    itemsArchiveObj.renderList(dataArchive);
 }
 
 
@@ -107,7 +125,36 @@ const AddForm = AddItemsFormWrap(handlerAddItem,handlerDeleteItem);
 const itemsObj = ItemsWrap(handlerDeleteItem,handlerChangeStatusItem);
 const footerObj = Footer(handlerClear,handlerSort);
 
-render()
+const itemsArchiveObj = ItemsWrap(handlerDeleteArchiveItem,hanlerAddToListItem);
 
-container.append(header,AddForm,itemsObj.itemsWrapEl,footerObj.footerEl);
+render();
+
+renderArchive();
+
+container.append(header,AddForm,itemsObj.itemsWrapEl,footerObj.footerEl,itemsArchiveObj.itemsWrapEl);
 app.append(container);
+
+async function  addToDoServers(Obj){
+        let response = await fetch('http://localhost:3000/api/todos/',{
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(Obj)
+    });
+
+    let dataServer = await response.json();
+
+    return dataServer;
+}
+
+let obj = {
+    name:'test',
+    owner:'user',
+    done:false,
+}
+
+
+//console.log(await addToDoServers(obj));
+
+
