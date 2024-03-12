@@ -64,9 +64,9 @@ const handlerDeleteItem = async function (Obj) {
 const handlerDeleteArchiveItem = async function (Obj){
     //  Удаления через filter
     dataArchive = dataArchive.filter((item)=> item.owner !== Number(Obj.owner));
-    dataArchive = await delToDoServers(Obj.id);
+    await delToDoServers(Obj.id);
+    console.log(dataArchive);
     alert();
-
     //saveToLocalStorage(dataArchive, 'todoArchives');
     renderArchive();
 }
