@@ -11,7 +11,8 @@ import { Footer } from "./components/Footer.js";
 
 // Для получение данных сделать из двух один
 let data = JSON.parse(localStorage.getItem('todoItems')) || [];
-let dataArchive = JSON.parse(localStorage.getItem('todoArchives')) || [];
+//let dataArchive = JSON.parse(localStorage.getItem('todoArchives')) || [];
+let dataArchive = await getToDoServers() || [];
 
 let filterType = 'all';
 
@@ -37,41 +38,43 @@ const handlerSort = function(sortTypes){
 const handlerAddItem = function(inputEl){
     data.push({
         id:Date.now(),
+        owner:Date.now(),
         name:inputEl.value,
         status: false,
     });
-
+    //addToDoServers(dataToServer);
     saveToLocalStorage(data, 'todoItems');
     render();
     inputEl.value = '';
 }
 
-const handlerDeleteItem = function (Obj) {
-
+const handlerDeleteItem = async function (Obj) {
     dataArchive.push(Obj);
 
-    data = data.filter((item) => item.id !== Number(Obj.id));
-
-    saveToLocalStorage(dataArchive, 'todoArchives');
+    await addToDoServers(Obj);
+    data = data.filter((item) => item.owner !== Number(Obj.owner));
+    
+    //saveToLocalStorage(dataArchive, 'todoArchives');
     saveToLocalStorage(data, 'todoItems');
-
     renderArchive();
     render();
 
 };
 
-const handlerDeleteArchiveItem = function (Obj){
+const handlerDeleteArchiveItem = async function (Obj){
     //  Удаления через filter
-    dataArchive = dataArchive.filter((item)=> item.id !== Number(Obj.id));
+    dataArchive = dataArchive.filter((item)=> item.owner !== Number(Obj.owner));
+    dataArchive = await delToDoServers(Obj.id);
+    alert();
 
-    saveToLocalStorage(dataArchive, 'todoArchives');
+    //saveToLocalStorage(dataArchive, 'todoArchives');
     renderArchive();
 }
 
 const handlerChangeStatusItem = function (Obj,item){
     item.classList.toggle("checked");
     data = data.map(item => {
-        if(Obj.id == item.id){
+        if(Obj.owner == item.owner){
             item.status = !item.status;
         } 
         
@@ -81,15 +84,13 @@ const handlerChangeStatusItem = function (Obj,item){
     saveToLocalStorage(data, 'todoItems');
 };
 
-const hanlerAddToListItem = function(Obj){
+const hanlerAddToListItem = async function(Obj){
     data.push(Obj);
-    dataArchive.forEach((item,index) => {
-        if(item.id === Number(Obj.id)){
-            dataArchive.splice(index,1);
-        }
-    });
 
-    saveToLocalStorage(dataArchive, 'todoArchives');
+    dataArchive = dataArchive.filter((item)=> item.id !== Number(Obj.id));
+    //await addToDoServers(dataArchive);
+    await delToDoServers(Obj.id);
+    //saveToLocalStorage(dataArchive, 'todoArchives');
     saveToLocalStorage(data, 'todoItems');
     renderArchive();
     render();
@@ -128,7 +129,6 @@ const footerObj = Footer(handlerClear,handlerSort);
 const itemsArchiveObj = ItemsWrap(handlerDeleteArchiveItem,hanlerAddToListItem);
 
 render();
-
 renderArchive();
 
 container.append(header,AddForm,itemsObj.itemsWrapEl,footerObj.footerEl,itemsArchiveObj.itemsWrapEl);
@@ -148,13 +148,23 @@ async function  addToDoServers(Obj){
     return dataServer;
 }
 
-let obj = {
-    name:'test',
-    owner:'user',
-    done:false,
+async function getToDoServers(){
+    const response = await fetch(`http://localhost:3000/api/todos/`,{
+        method: 'GET',
+        headers:{'Content-Type':'application-json'},
+    });
+
+    let data = await response.json();
+
+    return data;
 }
 
+async function delToDoServers(id){
+    const response = await fetch(`http://localhost:3000/api/todos/${id}`,{
+        method: 'DELETE'
+    });
 
-//console.log(await addToDoServers(obj));
+    let data = await response.json();
 
-
+    return data;
+}

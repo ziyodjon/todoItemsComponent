@@ -11,6 +11,7 @@ export function Items (handlerDeleteItem,handlerChangeStatusItem){
 
     function renderList(data){
         itemsEl.innerHTML = '';
+        console.log('Data' + data);
         data.forEach(itemObj => {
             itemsEl.append(ItemsLi(itemObj,handlerDeleteItem,handlerChangeStatusItem));
         });
