@@ -50,16 +50,15 @@ function makeTodoItemFromData(data) {
 
   // составляем объект, где есть только необходимые поля
   const todoItem = {
-    id: data.id,
     owner: data.owner && String(data.owner),
     name: data.name && String(data.name),
-    status: Boolean(data.status),
+    done: Boolean(data.done),
   };
 
   // проверяем, все ли данные корректные и заполняем объект ошибок, которые нужно отдать клиенту
   if (!todoItem.owner) errors.push({ field: 'owner', message: 'Не указан ответственный' });
   if (!todoItem.name) errors.push({ field: 'name', message: 'Не указан заголовок задачи' });
-  if (!todoItem.status) todoItem.status = false;
+  if (!todoItem.done) todoItem.done = false;
 
   // если есть ошибки, то кидаем ошибку с их списком и 422 статусом
   if (errors.length) throw new TodoApiError(422, { errors });
@@ -86,7 +85,7 @@ function getTodoList(params = {}) {
  */
 function createTodoItem(data) {
   const newItem = makeTodoItemFromData(data);
-  // newItem.id = Date.now().toString();
+  newItem.id = Date.now().toString();
   writeFileSync(DB_FILE, JSON.stringify([...getTodoList(), newItem]), { encoding: 'utf8' });
   return newItem;
 }
@@ -127,13 +126,7 @@ function updateTodoItem(itemId, data) {
  */
 function deleteTodoItem(itemId) {
   const todoItems = getTodoList();
-  const itemIndex = todoItems.findIndex((todo, index) => {
-    if(todo.id === itemId) {
-      return index
-    }
-
-    return -1
-  });
+  const itemIndex = todoItems.findIndex(({ id }) => id === itemId);
   if (itemIndex === -1) throw new TodoApiError(404, { message: 'TODO Item Not Found' });
   todoItems.splice(itemIndex, 1);
   writeFileSync(DB_FILE, JSON.stringify(todoItems), { encoding: 'utf8' });
