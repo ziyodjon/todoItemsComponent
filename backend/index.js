@@ -43,7 +43,7 @@ function drainJson(req) {
  * Проверяет входные данные и создаёт из них корректный объект дела
  * @param {Object} data - Объект с входными данными
  * @throws {TodoApiError} Некорректные данные в аргументе (statusCode 422)
- * @returns {{ name: string, owner: string, done: boolean }} Объект дела
+ * @returns {{ name: string, owner: string, status: boolean }} Объект дела
  */
 function makeTodoItemFromData(data) {
   const errors = [];
@@ -52,13 +52,13 @@ function makeTodoItemFromData(data) {
   const todoItem = {
     owner: data.owner && String(data.owner),
     name: data.name && String(data.name),
-    done: Boolean(data.done),
+    status: Boolean(data.status),
   };
 
   // проверяем, все ли данные корректные и заполняем объект ошибок, которые нужно отдать клиенту
   if (!todoItem.owner) errors.push({ field: 'owner', message: 'Не указан ответственный' });
   if (!todoItem.name) errors.push({ field: 'name', message: 'Не указан заголовок задачи' });
-  if (!todoItem.done) todoItem.done = false;
+  if (!todoItem.status) todoItem.status = false;
 
   // если есть ошибки, то кидаем ошибку с их списком и 422 статусом
   if (errors.length) throw new TodoApiError(422, { errors });
@@ -69,7 +69,7 @@ function makeTodoItemFromData(data) {
 /**
  * Возвращает список дел из базы данных
  * @param {{ owner: string }} [params] - Фильтр по владельцу дела
- * @returns {{ name: string, owner: string, done: boolean }[]} Массив дел
+ * @returns {{ name: string, owner: string, status: boolean }[]} Массив дел
  */
 function getTodoList(params = {}) {
   const todoList = JSON.parse(readFileSync(DB_FILE) || '[]');
@@ -81,7 +81,7 @@ function getTodoList(params = {}) {
  * Создаёт и сохраняет дело в базу данных
  * @throws {TodoApiError} Некорректные данные в аргументе, дело не создано (statusCode 422)
  * @param {Object} data - Данные из тела запроса
- * @returns {{ name: string, owner: string, done: boolean }} Объект дела
+ * @returns {{ name: string, owner: string, status: boolean }} Объект дела
  */
 function createTodoItem(data) {
   const newItem = makeTodoItemFromData(data);
@@ -94,7 +94,7 @@ function createTodoItem(data) {
  * Возвращает объект дела по его ID
  * @param {string} itemId - ID дела
  * @throws {TodoApiError} Дело с таким ID не найдено (statusCode 404)
- * @returns {{ name: string, owner: string, done?: boolean }} Объект дела
+ * @returns {{ name: string, owner: string, status?: boolean }} Объект дела
  */
 function getTodoItem(itemId) {
   const todoItem = getTodoList().find(({ id }) => id === itemId);
@@ -105,10 +105,10 @@ function getTodoItem(itemId) {
 /**
  * Изменяет дело с указанным ID и сохраняет изменения в базу данных
  * @param {string} itemId - ID изменяемого дела
- * @param {{ name?: string, owner?: string, done?: boolean }} data - Объект с изменяемыми данными
+ * @param {{ name?: string, owner?: string, status?: boolean }} data - Объект с изменяемыми данными
  * @throws {TodoApiError} Дело с таким ID не найдено (statusCode 404)
  * @throws {TodoApiError} Некорректные данные в аргументе (statusCode 422)
- * @returns {{ name: string, owner: string, done?: boolean }} Объект дела
+ * @returns {{ name: string, owner: string, status?: boolean }} Объект дела
  */
 function updateTodoItem(itemId, data) {
   const todoItems = getTodoList();
@@ -218,9 +218,9 @@ createServer(async (req, res) => {
     console.log('Нажмите CTRL+C, чтобы остановить сервер');
     console.log('Доступные методы:');
     console.log(`GET ${URI_PREFIX} - получить список дел, query параметр owner фильтрует по владельцу`);
-    console.log(`POST ${URI_PREFIX} - создать дело, в теле запроса нужно передать объект { name: string, owner: string, done?: boolean }`);
+    console.log(`POST ${URI_PREFIX} - создать дело, в теле запроса нужно передать объект { name: string, owner: string, status?: boolean }`);
     console.log(`GET ${URI_PREFIX}/{id} - получить дело по его ID`);
-    console.log(`PATCH ${URI_PREFIX}/{id} - изменить дело с ID, в теле запроса нужно передать объект { name?: string, owner?: string, done?: boolean }`);
+    console.log(`PATCH ${URI_PREFIX}/{id} - изменить дело с ID, в теле запроса нужно передать объект { name?: string, owner?: string, status?: boolean }`);
     console.log(`DELETE ${URI_PREFIX}/{id} - удалить дело по ID`);
   })
 // ...и вызываем запуск сервера на указанном порту

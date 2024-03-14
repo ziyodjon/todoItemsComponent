@@ -2,8 +2,8 @@
 import { createElement } from "../createElement.js";
 import { Items } from "./Items.js";
 
-export function ItemsWrap(handlerDeleteItem,handlerChangeStatusItem){
-    const itemsObj = Items(handlerDeleteItem,handlerChangeStatusItem);
+export function ItemsWrap(handlerDeleteItem,handlerChangeStatusItem,handlerEditItem){
+    const itemsObj = Items(handlerDeleteItem,handlerChangeStatusItem,handlerEditItem);
 
     const itemsWrapEl = createElement({
         tagName: 'div',

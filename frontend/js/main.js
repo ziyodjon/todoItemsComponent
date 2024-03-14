@@ -9,19 +9,27 @@ import { ItemsWrap } from "./components/ItemsWrap.js";
 import { Footer } from "./components/Footer.js";
 
 
-// Для получение данных сделать из двух один
-let data = JSON.parse(localStorage.getItem('todoItems')) || [];
-//let dataArchive = JSON.parse(localStorage.getItem('todoArchives')) || [];
-let dataArchive = await getToDoServers() || [];
+// Названия сервера
+const SITENAME = 'http://localhost:3000';
+
+//let data = JSON.parse(localStorage.getItem('todoItems')) || [];
+let data = await getToDoServers() || [];
+let dataArchive = JSON.parse(localStorage.getItem('todoArchives')) || [];
+//let dataArchive = await getToDoServers() || [];
+
+
 
 let filterType = 'all';
 
-const handlerClear = function (){
+const handlerClear = function (obj){
     filterType = 'all';
 
-    data.forEach(item => item.status = false);
-
-    saveToLocalStorage(data, 'todoItems');
+    data.forEach((item,index)=>{
+        //item => item.status = false
+        data[index].status = false;
+    });
+    console.log(data);
+    //saveToLocalStorage(data, 'todoItems');
     render();
 }
 
@@ -35,63 +43,77 @@ const handlerSort = function(sortTypes){
     render();
 }
 
-const handlerAddItem = function(inputEl){
-    data.push({
-        id:Date.now(),
+const handlerAddItem = async function(inputEl){
+    const obj = {
         owner:Date.now(),
         name:inputEl.value,
         status: false,
-    });
-    //addToDoServers(dataToServer);
-    saveToLocalStorage(data, 'todoItems');
+    };
+    const newToDoItem = await addToDoServers(obj);
+    data.push(newToDoItem);
+
     render();
     inputEl.value = '';
 }
 
-const handlerDeleteItem = async function (Obj) {
-    dataArchive.push(Obj);
+const handlerEditItem = function(obj){
 
-    await addToDoServers(Obj);
-    data = data.filter((item) => item.owner !== Number(Obj.owner));
-    
-    //saveToLocalStorage(dataArchive, 'todoArchives');
-    saveToLocalStorage(data, 'todoItems');
-    renderArchive();
-    render();
+    const toDoItemName = 'todoCheckItem'
+    console.log('handlerEditItem');
+    inputEl.value = 'TEST';
+}
+const handlerDeleteItem = async function (obj) {
+    try {
+        const res = await delToDoServers(obj.id);
+        if (res.message) {
+            throw new Error(res.message)
+        }
+            data = data.filter((item) => item.id !== obj.id);
+            //console.log(typeof data);
+            //await addToDoServers(data);
+            
+            dataArchive.push(obj);
 
+            saveToLocalStorage(dataArchive, 'todoArchives');
+            //saveToLocalStorage(data, 'todoItems');
+            renderArchive();
+            render();
+    } catch (error) {
+        console.log(error);
+        //alert(error.message);
+    }
 };
 
-const handlerDeleteArchiveItem = async function (Obj){
+const handlerDeleteArchiveItem = async function (obj){
     //  Удаления через filter
-    dataArchive = dataArchive.filter((item)=> item.owner !== Number(Obj.owner));
-    await delToDoServers(Obj.id);
-    console.log(dataArchive);
-    alert();
-    //saveToLocalStorage(dataArchive, 'todoArchives');
+    dataArchive = dataArchive.filter((item)=> item.id !== obj.id);
+    //await delToDoServers(obj.id);
+    saveToLocalStorage(dataArchive, 'todoArchives');
     renderArchive();
 }
 
-const handlerChangeStatusItem = function (Obj,item){
+const handlerChangeStatusItem = async function (obj,item){
     item.classList.toggle("checked");
     data = data.map(item => {
-        if(Obj.owner == item.owner){
+        if(obj.id == item.id){
             item.status = !item.status;
         } 
         
         return item;
     });
+    await updateToDoServers(obj);
     render()
-    saveToLocalStorage(data, 'todoItems');
+    //saveToLocalStorage(data, 'todoItems');
 };
 
-const hanlerAddToListItem = async function(Obj){
-    data.push(Obj);
+const hanlerAddToListItem = async function(obj){
+    
 
-    dataArchive = dataArchive.filter((item)=> item.id !== Number(Obj.id));
-    //await addToDoServers(dataArchive);
-    await delToDoServers(Obj.id);
-    //saveToLocalStorage(dataArchive, 'todoArchives');
-    saveToLocalStorage(data, 'todoItems');
+    dataArchive = dataArchive.filter((item)=> item.id !== obj.id);
+    
+    await addToDoServers(obj);
+    data.push(obj);
+    saveToLocalStorage(dataArchive, 'todoArchives');
     renderArchive();
     render();
 }
@@ -122,8 +144,8 @@ const renderArchive = function(){
 const app = document.querySelector('.app');
 const container = Container();
 const header = Header();
-const AddForm = AddItemsFormWrap(handlerAddItem,handlerDeleteItem);
-const itemsObj = ItemsWrap(handlerDeleteItem,handlerChangeStatusItem);
+const AddForm = AddItemsFormWrap(handlerAddItem,handlerDeleteItem,handlerEditItem);
+const itemsObj = ItemsWrap(handlerDeleteItem,handlerChangeStatusItem,handlerEditItem);
 const footerObj = Footer(handlerClear,handlerSort);
 
 const itemsArchiveObj = ItemsWrap(handlerDeleteArchiveItem,hanlerAddToListItem);
@@ -135,7 +157,7 @@ container.append(header,AddForm,itemsObj.itemsWrapEl,footerObj.footerEl,itemsArc
 app.append(container);
 
 async function  addToDoServers(Obj){
-        let response = await fetch('http://localhost:3000/api/todos/',{
+        let response = await fetch(`${SITENAME}/api/todos/`,{
         method:'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -149,7 +171,7 @@ async function  addToDoServers(Obj){
 }
 
 async function getToDoServers(){
-    const response = await fetch(`http://localhost:3000/api/todos/`,{
+    const response = await fetch(`${SITENAME}/api/todos/`,{
         method: 'GET',
         headers:{'Content-Type':'application-json'},
     });
@@ -159,8 +181,23 @@ async function getToDoServers(){
     return data;
 }
 
+async function  updateToDoServers(obj){
+    console.log(await obj);
+    let response = await fetch(`${SITENAME}/api/todos/${obj.id}`,{
+    method:'PATCH',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(obj)
+});
+
+let dataServer = await response.json();
+
+return dataServer;
+}
+
 async function delToDoServers(id){
-    const response = await fetch(`http://localhost:3000/api/todos/${id}`,{
+    const response = await fetch(`${SITENAME}/api/todos/${id}`,{
         method: 'DELETE'
     });
 

@@ -2,7 +2,7 @@
 import { createElement } from "../createElement.js";
 import ItemsLi from "./ItemsLi.js";
 
-export function Items (handlerDeleteItem,handlerChangeStatusItem){
+export function Items (handlerDeleteItem,handlerChangeStatusItem,handlerEditItem){
     const itemsEl = createElement({
         tagName:'ul',
         className: ['itemsList'],
@@ -11,9 +11,8 @@ export function Items (handlerDeleteItem,handlerChangeStatusItem){
 
     function renderList(data){
         itemsEl.innerHTML = '';
-        console.log(data);
         data.forEach(itemObj => {
-            itemsEl.append(ItemsLi(itemObj,handlerDeleteItem,handlerChangeStatusItem));
+            itemsEl.append(ItemsLi(itemObj,handlerDeleteItem,handlerChangeStatusItem,handlerEditItem));
         });
     }
     return {

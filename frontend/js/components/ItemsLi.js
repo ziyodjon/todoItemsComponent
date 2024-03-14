@@ -1,6 +1,6 @@
 import { createElement } from "../createElement.js";
 
-export default function ItemsLi (itemObj,handlerDeleteItem,handlerChangeStatusItem) {
+export default function ItemsLi (itemObj,handlerDeleteItem,handlerChangeStatusItem,handlerEditItem) {
     const item = createElement({
         tagName:'li',
         className: ['item'],
@@ -16,6 +16,11 @@ export default function ItemsLi (itemObj,handlerDeleteItem,handlerChangeStatusIt
         className:['close', 'fa', 'fa-trash-o'],
     });
 
+    const editBtn = createElement({
+        tagName:'button',
+        className:['edit', 'fa', 'fa-pencil-square-o']
+    });
+
     item.addEventListener('click',()=>{
         handlerChangeStatusItem(itemObj,item);
         //item.classList.toggle("checked");
@@ -27,11 +32,17 @@ export default function ItemsLi (itemObj,handlerDeleteItem,handlerChangeStatusIt
         handlerDeleteItem(itemObj);
     });
 
+    editBtn.addEventListener('click',(event) => {
+        event.stopPropagation();
+        // Чтобы изменить один item из списка
+        handlerEditItem(itemObj);
+    });
+
     if(itemObj.status){
         item.classList.add('checked');
     }
 
-    item.append(itemCheck,deleteBtn);
+    item.append(itemCheck,editBtn,deleteBtn);
     
     return item;
 }
